@@ -11,13 +11,15 @@
   },
   "app": {
     "windows": [
-      {
-        "title": "lembreta",
-        "width": 350,
-        "height": 300,
-        "resizable": false
-      }
-    ],
+    {
+      "title": "lembreta",
+      "width": 400,
+      "height": 350,
+      "resizable": false,
+      "decorations": false,
+      "shadow": true
+    }
+  ],
     "security": {
       "csp": null
     }
@@ -34,3 +36,5 @@
     ]
   }
 }
+
+

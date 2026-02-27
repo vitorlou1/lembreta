@@ -51,3 +51,5 @@ tmpclaude-*
 .env
 .env.local
 .env.production
+
+key.txt

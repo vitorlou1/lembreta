@@ -23,4 +23,12 @@ export const windowCommands = {
     await win.unminimize();
     await win.setFocus();
   },
+  minimize: async () => {
+    const win = getCurrentWindow();
+    await win.minimize();
+  },
+  close: async () => {
+    const win = getCurrentWindow();
+    await win.close();
+  },
 };
