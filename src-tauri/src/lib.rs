@@ -12,52 +12,28 @@ use chrono::Utc;
 pub struct Task {
     pub id: String,
     pub title: String,
-    pub description: Option<String>,
     pub status: TaskStatus,
-    pub priority: TaskPriority,
     pub created_at: String,
-    pub due_date: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub enum TaskStatus {
     #[serde(rename = "todo")]
     Todo,
-    #[serde(rename = "in_progress")]
-    InProgress,
     #[serde(rename = "done")]
     Done,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum TaskPriority {
-    #[serde(rename = "low")]
-    Low,
-    #[serde(rename = "medium")]
-    Medium,
-    #[serde(rename = "high")]
-    High,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateTaskInput {
     pub title: String,
-    pub description: Option<String>,
-    pub priority: TaskPriority,
-    pub due_date: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateTaskInput {
-    pub title: Option<String>,
-    pub description: Option<String>,
     pub status: Option<TaskStatus>,
-    pub priority: Option<TaskPriority>,
-    pub due_date: Option<String>,
 }
 
 // ── Persistence ─────────────────────────────────────────────────────────────
@@ -97,11 +73,8 @@ fn create_task(app: tauri::AppHandle, input: CreateTaskInput) -> Task {
     let task = Task {
         id: Uuid::new_v4().to_string(),
         title: input.title,
-        description: input.description,
         status: TaskStatus::Todo,
-        priority: input.priority,
         created_at: Utc::now().to_rfc3339(),
-        due_date: input.due_date,
     };
 
     tasks.push(task.clone());
@@ -114,11 +87,9 @@ fn update_task(app: tauri::AppHandle, id: String, input: UpdateTaskInput) -> Opt
     let mut tasks = load_tasks(&app);
 
     if let Some(task) = tasks.iter_mut().find(|t| t.id == id) {
-        if let Some(title) = input.title { task.title = title; }
-        if let Some(description) = input.description { task.description = Some(description); }
-        if let Some(status) = input.status { task.status = status; }
-        if let Some(priority) = input.priority { task.priority = priority; }
-        if let Some(due_date) = input.due_date { task.due_date = Some(due_date); }
+        if let Some(status) = input.status {
+            task.status = status;
+        }
 
         let updated = task.clone();
         save_tasks(&app, &tasks);
