@@ -17,9 +17,9 @@
       "height": 350,
       "resizable": false,
       "decorations": false,
-      "shadow": true
+      "shadow": false
     }
-  ],
+],
     "security": {
       "csp": null
     }

@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card";
 import type { Task, TaskStatus } from "@/features/tasks/types";
 
 interface TaskCardProps {
@@ -15,30 +14,37 @@ export function TaskCard({ task, onStatusChange, onRemove }: TaskCardProps) {
   };
 
   return (
-    <Card className="bg-zinc-900 border-zinc-800 px-4 py-3">
+    <div
+      className="px-4 py-3 rounded-lg mb-2"
+      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+    >
       <div className="flex items-center gap-3">
         <input
           type="checkbox"
           checked={isDone}
           onChange={handleToggle}
-          className="accent-zinc-400 cursor-pointer shrink-0"
+          className="cursor-pointer shrink-0"
+          style={{ accentColor: "#00A884" }}
           aria-label={`Mark "${task.title}" as ${isDone ? "incomplete" : "complete"}`}
         />
         <span
-          className={`text-sm flex-1 ${
-            isDone ? "line-through text-zinc-500" : "text-zinc-100"
-          }`}
+          className="text-sm flex-1"
+          style={{
+            color: isDone ? "var(--color-text-secondary)" : "var(--color-text-primary)",
+            textDecoration: isDone ? "line-through" : "none",
+          }}
         >
           {task.title}
         </span>
         <button
           onClick={() => onRemove(task.id)}
-          className="text-zinc-600 hover:text-zinc-300 transition-colors text-xs shrink-0"
+          className="transition-colors text-xs shrink-0 hover:text-red-400"
+          style={{ color: "var(--color-text-secondary)" }}
           aria-label="Remove task"
         >
           ✕
         </button>
       </div>
-    </Card>
+    </div>
   );
 }

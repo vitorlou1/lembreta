@@ -23,47 +23,46 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen bg-zinc-950 text-zinc-100 flex flex-col px-4 py-3 gap-3 overflow-hidden">
-
+    <div
+      className="h-screen flex flex-col px-4 py-3 gap-3 overflow-hidden"
+      style={{ background: "var(--color-bg)", color: "var(--color-text-primary)" }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-end gap-2 flex-shrink-0 h-8 -mx-4 -mt-3 px-4 mb-1" data-tauri-drag-region>
-        <button
-          onClick={() => windowCommands.minimize()}
-          className="text-zinc-600 hover:text-zinc-300 transition-colors"
-          aria-label="Minimize"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
+      <div
+        className="flex items-center justify-between flex-shrink-0 h-8 -mx-4 -mt-3 px-4 mb-1"
+        data-tauri-drag-region
+      >
+        {/* Left — clear completed */}
+        <div>
+          {completedTasks.length > 0 && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              title="Clear completed tasks"
+              aria-label="Clear completed tasks"
+              className="text-xs px-3 py-1 rounded-full transition-colors"
+              style={{
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
 
-        <button
-          onClick={() => windowCommands.close()}
-          className="text-zinc-600 hover:text-red-400 transition-colors"
-          aria-label="Close"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-
-        {completedTasks.length > 0 && (
+        {/* Right — window controls */}
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsModalOpen(true)}
-            title="Clear completed tasks"
-            className="text-zinc-600 hover:text-red-400 transition-colors"
-            aria-label="Clear completed tasks"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6l-1 14H6L5 6" />
-              <path d="M10 11v6" />
-              <path d="M14 11v6" />
-              <path d="M9 6V4h6v2" />
-            </svg>
-          </button>
-        )}
+            onClick={() => windowCommands.minimize()}
+            className="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
+            aria-label="Minimize"
+          />
+          <button
+            onClick={() => windowCommands.close()}
+            className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-400 transition-colors"
+            aria-label="Close"
+          />
+        </div>
       </div>
 
       {/* Scrollable task list */}
@@ -82,7 +81,7 @@ export default function App() {
       </div>
 
       {/* Static divider */}
-      <div className="border-t border-zinc-800 flex-shrink-0" />
+      <div className="flex-shrink-0" style={{ borderTop: "1px solid var(--color-border)" }} />
 
       {/* Static timer */}
       <div className="flex-shrink-0">
@@ -97,7 +96,6 @@ export default function App() {
           onCancel={() => setIsModalOpen(false)}
         />
       )}
-
     </div>
   );
 }

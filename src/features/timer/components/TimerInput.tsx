@@ -43,16 +43,14 @@ export function TimerInput() {
   };
 
   const startLabel =
-    isIdle ? "start" :
-    isRunning ? "pause" :
-    isPaused ? "resume" :
+    isIdle ? "Start" :
+    isRunning ? "Pause" :
+    isPaused ? "Resume" :
     "reset";
 
   const confirmEdit = () => {
     const total = parseTimerInput(rawInput);
     if (total > 0) {
-      const minutes = Math.floor(total / 60);
-      const seconds = total % 60;
       input.adjust(total - input.totalSeconds);
     }
     setIsEditing(false);
@@ -86,13 +84,21 @@ export function TimerInput() {
             onChange={(e) => setRawInput(e.target.value.replace(/\D/g, ""))}
             onBlur={confirmEdit}
             onKeyDown={handleKeyDown}
-            className="w-24 text-2xl font-mono text-zinc-100 bg-transparent border-b border-zinc-600 focus:border-zinc-400 outline-none text-center transition-colors"
+            className="w-24 text-2xl font-mono outline-none text-center transition-colors bg-transparent"
+            style={{
+              borderBottom: "1px solid var(--color-border)",
+              color: "var(--color-text-primary)",
+            }}
             maxLength={6}
           />
         ) : (
           <span
             onClick={() => isIdle && setIsEditing(true)}
-            className={`text-2xl font-mono text-zinc-100 w-24 text-center ${isIdle ? "cursor-pointer hover:text-zinc-400 transition-colors" : ""}`}
+            className="text-2xl font-mono w-24 text-center transition-colors"
+            style={{
+              color: "var(--color-text-primary)",
+              cursor: isIdle ? "pointer" : "default",
+            }}
             title={isIdle ? "Click to edit" : undefined}
           >
             {String(displayMinutes).padStart(2, "0")}:
@@ -107,24 +113,30 @@ export function TimerInput() {
       </div>
 
       <div className="flex items-center gap-2">
-  <button
-    onClick={handleStartPause}
-    disabled={isIdle && input.totalSeconds === 0}
-    className="text-xs px-4 py-1 rounded-full border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-zinc-100 disabled:opacity-40 transition-colors"
-  >
-    {startLabel}
-  </button>
+        <button
+          onClick={handleStartPause}
+          disabled={isIdle && input.totalSeconds === 0}
+          className="text-xs px-4 py-1 rounded-full transition-colors disabled:opacity-40"
+          style={{
+            border: "1px solid var(--color-border)",
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          {startLabel}
+        </button>
 
-        {!isIdle && (
-          <button
-            onClick={handleReset}
-            className="text-xs px-4 py-1 rounded-full border border-zinc-700 text-zinc-500 hover:border-zinc-500 hover:text-zinc-300 transition-colors"
-          >
-            reset
-          </button>
-        )}
+        <button
+          onClick={handleReset}
+          disabled={isIdle}
+          className="text-xs px-4 py-1 rounded-full transition-colors disabled:opacity-30"
+          style={{
+            border: "1px solid var(--color-border)",
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          Reset
+        </button>
       </div>
-      
     </div>
   );
 }
@@ -140,7 +152,11 @@ function AdjustButton({ label, onClick, disabled }: AdjustButtonProps) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className="text-xs w-8 h-8 rounded-full border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200 disabled:opacity-30 transition-colors"
+      className="text-xs w-8 h-8 rounded-full transition-colors disabled:opacity-30"
+      style={{
+        border: "1px solid var(--color-border)",
+        color: "var(--color-text-secondary)",
+      }}
     >
       {label}
     </button>

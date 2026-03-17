@@ -116,6 +116,14 @@
 
 @import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -129,6 +137,11 @@ input[type="number"] {
 @layer base {
   :root {
     color-scheme: dark;
+    --color-bg: #0A1014;
+    --color-surface: #12181C;
+    --color-border: #1F2A30;
+    --color-text-primary: #E9EDEF;
+    --color-text-secondary: #8696A0;
   }
 }
 
@@ -139,4 +152,61 @@ input[type="number"] {
   body {
     @apply bg-background text-foreground;
     }
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+.task-input {
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  background-color: transparent;
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: 0.5em;
+  padding-block: 0.7em;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.task-input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.task-input:focus {
+  outline: none;
+}
+
+.task-input:focus + .task-input-border {
+  width: 100%;
+}
+
+.task-input-border {
+  position: absolute;
+  background: #E9EDEF;
+  width: 0%;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  transition: width 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+}
+
+.task-input:focus + .task-input-border {
+  width: 100%;
 }
