@@ -1,6 +1,15 @@
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { Task, CreateTaskInput, UpdateTaskInput } from "@/features/tasks/types";
+import { enable, isEnabled } from "@tauri-apps/plugin-autostart";
+
+export const autostartCommands = {
+  enable: async () => {
+    if (!(await isEnabled())) {
+      await enable();
+    }
+  },
+};
 
 export const taskCommands = {
   getAll: (): Promise<Task[]> => {

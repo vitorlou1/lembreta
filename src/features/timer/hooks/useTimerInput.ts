@@ -1,30 +1,45 @@
 import { useState } from "react";
 
-const MAX_SECONDS = 5999;
+interface TimerInputState {
+  hrs: number;
+  min: number;
+  sec: number;
+}
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
+function clamp(value: number, max: number): number {
+  return Math.min(Math.max(0, value), max);
 }
 
 export function useTimerInput() {
-  const [totalSeconds, setTotalSeconds] = useState(60);
+  const [state, setState] = useState<TimerInputState>({
+    hrs: 0,
+    min: 0,
+    sec: 0,
+  });
 
-  const adjust = (delta: number) => {
-    setTotalSeconds((prev) => clamp(prev + delta, 0, MAX_SECONDS));
+  const setField = (field: keyof TimerInputState, value: number) => {
+    const max = field === "hrs" ? 99 : 59;
+    setState((prev) => ({ ...prev, [field]: clamp(value, max) }));
   };
 
-  const reset = () => {
-    setTotalSeconds(0);
-  };
+  const reset = () => setState({ hrs: 0, min: 0, sec: 0 });
 
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
+  const totalSeconds = state.hrs * 3600 + state.min * 60 + state.sec;
 
   return {
+    hrs: state.hrs,
+    min: state.min,
+    sec: state.sec,
     totalSeconds,
-    minutes,
-    seconds,
-    adjust,
+    setField,
     reset,
+    adjust: (delta: number) => {
+      const next = Math.max(0, totalSeconds + delta);
+      setState({
+        hrs: Math.floor(next / 3600),
+        min: Math.floor((next % 3600) / 60),
+        sec: next % 60,
+      });
+    },
   };
 }

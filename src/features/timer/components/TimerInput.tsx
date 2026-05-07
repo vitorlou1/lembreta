@@ -2,13 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { useTimerInput } from "@/features/timer/hooks/useTimerInput";
 import { useTimerEngine } from "@/features/timer/hooks/useTimerEngine";
 import { windowCommands } from "@/lib/tauri";
-import { playAlarmSound, parseTimerInput } from "@/features/timer/utils";
+import { playAlarmSound } from "@/features/timer/utils";
+
+type Field = "hrs" | "min" | "sec";
+const FIELDS: Field[] = ["hrs", "min", "sec"];
+const LABELS: Record<Field, string> = { hrs: "HRS", min: "MIN", sec: "SEC" };
 
 export function TimerInput() {
   const input = useTimerInput();
   const engine = useTimerEngine();
-  const [isEditing, setIsEditing] = useState(false);
-  const [rawInput, setRawInput] = useState("");
+  const [activeField, setActiveField] = useState<Field | null>(null);
+  const [rawValue, setRawValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -19,21 +23,67 @@ export function TimerInput() {
   }, [engine.status]);
 
   useEffect(() => {
-    if (isEditing && inputRef.current) {
+    if (activeField && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isEditing]);
+  }, [activeField]);
 
   const isIdle = engine.status === "idle";
   const isRunning = engine.status === "running";
   const isPaused = engine.status === "paused";
 
-  const displayMinutes = isIdle ? input.minutes : engine.minutes;
-  const displaySeconds = isIdle ? input.seconds : engine.seconds;
+  const displayValue = (field: Field): string => {
+    if (!isIdle) {
+      if (field === "hrs") return String(Math.floor(engine.remaining / 3600)).padStart(2, "0");
+      if (field === "min") return String(Math.floor((engine.remaining % 3600) / 60)).padStart(2, "0");
+      return String(engine.remaining % 60).padStart(2, "0");
+    }
+    return String(input[field]).padStart(2, "0");
+  };
 
-  const handleReset = () => {
-    engine.reset();
-    input.reset();
+  const handleFieldClick = (field: Field) => {
+    if (!isIdle) return;
+    setActiveField(field);
+    setRawValue("");
+  };
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+    setRawValue(digits);
+
+    if (digits.length === 2) {
+      const value = parseInt(digits, 10);
+      input.setField(activeField!, value);
+
+      const currentIndex = FIELDS.indexOf(activeField!);
+      const nextField = FIELDS[currentIndex + 1];
+
+      if (nextField) {
+        setActiveField(nextField);
+        setRawValue("");
+      } else {
+        setActiveField(null);
+        setRawValue("");
+      }
+    }
+  };
+
+  const handleBlur = () => {
+    if (rawValue.length > 0) {
+      input.setField(activeField!, parseInt(rawValue, 10));
+    }
+    setActiveField(null);
+    setRawValue("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape" || e.key === "Enter") {
+      if (rawValue.length > 0) {
+        input.setField(activeField!, parseInt(rawValue, 10));
+      }
+      setActiveField(null);
+      setRawValue("");
+    }
   };
 
   const handleStartPause = () => {
@@ -42,77 +92,72 @@ export function TimerInput() {
     else if (isPaused) engine.resume();
   };
 
-  const startLabel =
-    isIdle ? "Start" :
-    isRunning ? "Pause" :
-    isPaused ? "Resume" :
-    "reset";
-
-  const confirmEdit = () => {
-    const total = parseTimerInput(rawInput);
-    if (total > 0) {
-      input.adjust(total - input.totalSeconds);
-    }
-    setIsEditing(false);
-    setRawInput("");
+  const handleReset = () => {
+    engine.reset();
+    input.reset();
   };
 
-  const cancelEdit = () => {
-    setIsEditing(false);
-    setRawInput("");
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") confirmEdit();
-    if (e.key === "Escape") cancelEdit();
-  };
+  const startLabel = isIdle ? "start" : isRunning ? "pause" : isPaused ? "resume" : "start";
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1">
-          <AdjustButton label="-5" onClick={() => input.adjust(-300)} disabled={!isIdle} />
-          <AdjustButton label="-1" onClick={() => input.adjust(-60)} disabled={!isIdle} />
-        </div>
+    <div className="flex flex-col items-center justify-center gap-6 w-full h-full">
 
-        {isEditing ? (
-          <input
-            ref={inputRef}
-            type="text"
-            inputMode="numeric"
-            value={rawInput}
-            onChange={(e) => setRawInput(e.target.value.replace(/\D/g, ""))}
-            onBlur={confirmEdit}
-            onKeyDown={handleKeyDown}
-            className="w-24 text-2xl font-mono outline-none text-center transition-colors bg-transparent"
-            style={{
-              borderBottom: "1px solid var(--color-border)",
-              color: "var(--color-text-primary)",
-            }}
-            maxLength={6}
-          />
-        ) : (
-          <span
-            onClick={() => isIdle && setIsEditing(true)}
-            className="text-2xl font-mono w-24 text-center transition-colors"
-            style={{
-              color: "var(--color-text-primary)",
-              cursor: isIdle ? "pointer" : "default",
-            }}
-            title={isIdle ? "Click to edit" : undefined}
+      {/* Hidden input for capturing keystrokes */}
+      {activeField && (
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          value={rawValue}
+          onChange={handleInput}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className="absolute opacity-0 w-0 h-0"
+        />
+      )}
+
+      {/* Time fields */}
+      <div className="flex flex-col items-center gap-1">
+        {FIELDS.map((field) => (
+          <div
+            key={field}
+            className="flex items-baseline gap-2 cursor-pointer select-none"
+            onClick={() => handleFieldClick(field)}
           >
-            {String(displayMinutes).padStart(2, "0")}:
-            {String(displaySeconds).padStart(2, "0")}
-          </span>
-        )}
-
-        <div className="flex items-center gap-1">
-          <AdjustButton label="+1" onClick={() => input.adjust(60)} disabled={!isIdle} />
-          <AdjustButton label="+5" onClick={() => input.adjust(300)} disabled={!isIdle} />
-        </div>
+            <span
+              className="font-bold leading-none transition-colors"
+              style={{
+                fontSize: "5rem",
+                color: activeField === field
+                  ? "var(--color-text-primary)"
+                  : isIdle
+                  ? input[field] > 0
+                    ? "var(--color-text-primary)"
+                    : "var(--color-text-secondary)"
+                  : "var(--color-text-primary)",
+                opacity: !isIdle && activeField !== field ? 0.9 : 1,
+              }}
+            >
+              {activeField === field && rawValue.length > 0
+                ? rawValue.padStart(2, "0")
+                : displayValue(field)}
+            </span>
+            <span
+              className="font-medium"
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--color-text-secondary)",
+                letterSpacing: "0.1em",
+              }}
+            >
+              {LABELS[field]}
+            </span>
+          </div>
+        ))}
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Controls */}
+      <div className="flex items-center gap-3">
         <button
           onClick={handleStartPause}
           disabled={isIdle && input.totalSeconds === 0}
@@ -127,38 +172,16 @@ export function TimerInput() {
 
         <button
           onClick={handleReset}
-          disabled={isIdle}
+          disabled={isIdle && input.totalSeconds === 0}
           className="text-xs px-4 py-1 rounded-full transition-colors disabled:opacity-30"
           style={{
             border: "1px solid var(--color-border)",
             color: "var(--color-text-secondary)",
           }}
         >
-          Reset
+          reset
         </button>
       </div>
     </div>
-  );
-}
-
-interface AdjustButtonProps {
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-}
-
-function AdjustButton({ label, onClick, disabled }: AdjustButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="text-xs w-8 h-8 rounded-full transition-colors disabled:opacity-30"
-      style={{
-        border: "1px solid var(--color-border)",
-        color: "var(--color-text-secondary)",
-      }}
-    >
-      {label}
-    </button>
   );
 }

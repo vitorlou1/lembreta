@@ -7,9 +7,12 @@ import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { windowCommands } from "@/lib/tauri";
 import type { TaskStatus } from "@/features/tasks/types";
 
+type Tab = "tarefas" | "crono";
+
 export default function App() {
   const { tasks, isLoading, error, createTask, updateTask, removeTask } = useTasks();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("tarefas");
 
   const handleStatusChange = (id: string, status: TaskStatus) => {
     updateTask(id, { status });
@@ -24,33 +27,32 @@ export default function App() {
 
   return (
     <div
-      className="h-screen flex flex-col px-4 py-3 gap-3 overflow-hidden"
+      className="h-screen flex flex-col overflow-hidden"
       style={{ background: "var(--color-bg)", color: "var(--color-text-primary)" }}
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between flex-shrink-0 h-8 -mx-4 -mt-3 px-4 mb-1"
+        className="flex items-center justify-between flex-shrink-0 px-4 pt-3 pb-0"
         data-tauri-drag-region
       >
-        {/* Left — clear completed */}
-        <div>
-          {completedTasks.length > 0 && (
+        {/* Tabs */}
+        <div className="flex items-center gap-4">
+          {(["tarefas", "crono"] as Tab[]).map((tab) => (
             <button
-              onClick={() => setIsModalOpen(true)}
-              title="Clear completed tasks"
-              aria-label="Clear completed tasks"
-              className="text-xs px-3 py-1 rounded-full transition-colors"
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className="text-xs pb-1 transition-colors"
               style={{
-                border: "1px solid var(--color-border)",
-                color: "var(--color-text-secondary)",
+                color: activeTab === tab ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+                borderBottom: activeTab === tab ? "1px solid var(--color-text-primary)" : "1px solid transparent",
               }}
             >
-              Clear
+              {tab}
             </button>
-          )}
+          ))}
         </div>
 
-        {/* Right — window controls */}
+        {/* Window controls */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => windowCommands.minimize()}
@@ -65,28 +67,55 @@ export default function App() {
         </div>
       </div>
 
-      {/* Scrollable task list */}
-      {error && <p className="text-xs text-red-400 flex-shrink-0">{error}</p>}
-      <div className="flex-1 overflow-y-auto pr-1">
-        <TaskList
-          tasks={tasks}
-          onStatusChange={handleStatusChange}
-          onRemove={removeTask}
-        />
-      </div>
+      {/* Divider */}
+      <div className="flex-shrink-0 mx-4 mt-2" style={{ borderTop: "1px solid var(--color-border)" }} />
 
-      {/* Static form */}
-      <div className="flex-shrink-0">
-        <TaskForm onSubmit={createTask} isLoading={isLoading} />
-      </div>
+      {/* Tab: tarefas */}
+      {activeTab === "tarefas" && (
+        <div className="flex flex-col flex-1 overflow-hidden px-4 pt-2 pb-3 gap-2">
 
-      {/* Static divider */}
-      <div className="flex-shrink-0" style={{ borderTop: "1px solid var(--color-border)" }} />
+          {/* Clear completed */}
+         <div className="flex justify-end flex-shrink-0" style={{ minHeight: 0 }}>
+            {completedTasks.length > 0 && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                title="Clear completed tasks"
+                aria-label="Clear completed tasks"
+                className="text-xs px-3 py-1 rounded-full transition-colors"
+                style={{
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                clear
+              </button>
+            )}
+          </div>
 
-      {/* Static timer */}
-      <div className="flex-shrink-0">
-        <TimerInput />
-      </div>
+          {/* Task list */}
+          {error && <p className="text-xs text-red-400 flex-shrink-0">{error}</p>}
+          <div className="flex-1 overflow-y-auto pr-1 -mx-4 px-4">
+            <TaskList
+              tasks={tasks}
+              onStatusChange={handleStatusChange}
+              onRemove={removeTask}
+            />
+          </div>
+
+          {/* Task form */}
+          <div className="flex-shrink-0">
+            <TaskForm onSubmit={createTask} isLoading={isLoading} />
+          </div>
+
+        </div>
+      )}
+
+      {/* Tab: crono */}
+      {activeTab === "crono" && (
+        <div className="flex flex-1 items-center justify-center">
+          <TimerInput />
+        </div>
+      )}
 
       {/* Confirmation modal */}
       {isModalOpen && (

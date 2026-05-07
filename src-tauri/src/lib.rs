@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use chrono::Utc;
 use tauri::Manager;
+use tauri_plugin_autostart::MacosLauncher;
 
 // ── Domain types ────────────────────────────────────────────────────────────
 
@@ -200,6 +201,7 @@ fn delete_task(id: String) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+    .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec![])))
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
 
